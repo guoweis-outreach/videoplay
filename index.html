@@ -6,10 +6,11 @@
   </head>
   <body>
     <h1>createMediaStreamDestination() demo</h1>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
     <p>Encoding a pure sine wave to an Opus file </p>
     <p><button>Make sine wave</button></p>
-<video id="vid" crossOrigin='anonymous' src="http://vjs.zencdn.net/v/oceans.mp4" loop autoplay></video>
+    <video id="vid"></video>
 
     <audio controls></audio>
     <script>
@@ -23,8 +24,8 @@
      let mediaRecorder;
 
      function init() {
-         ac = new AudioContext();
-         var v1_src = ac.createMediaElementSource(vid);
+       ac = new AudioContext();
+       var v1_src = ac.createMediaElementSource(vid);
 
        // osc = ac.createOscillator();
        dest = ac.createMediaStreamDestination();
@@ -33,6 +34,7 @@
 
        mediaRecorder.ondataavailable = function(evt) {
          // push each chunk (blobs) in an array
+         console.log("blob pushed")
          chunks.push(evt.data);
        };
 
@@ -51,6 +53,14 @@
 
        if (!clicked) {
            mediaRecorder.start();
+
+           var videoSrc = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+           if (Hls.isSupported()) {
+               var hls = new Hls();
+               hls.loadSource(videoSrc);
+               hls.attachMedia(vid);
+           }
+
            vid.play();
            // osc.start(0);
            e.target.innerHTML = "Stop recording";
