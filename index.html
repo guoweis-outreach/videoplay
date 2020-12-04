@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>createMediaStreamDestination() demo</title>
+  </head>
+  <body>
+    <h1>createMediaStreamDestination() demo</h1>
+
+    <p>Encoding a pure sine wave to an Opus file </p>
+    <p><button>Make sine wave</button></p>
+<video id="vid" crossOrigin='anonymous' src="http://vjs.zencdn.net/v/oceans.mp4" loop autoplay></video>
+
+    <audio controls></audio>
+    <script>
+     const b = document.querySelector("button");
+      var vid = document.getElementById('vid');
+     let clicked = false;
+     let chunks = [];
+     let ac;
+     let osc;
+     let dest;
+     let mediaRecorder;
+
+     function init() {
+         ac = new AudioContext();
+         var v1_src = ac.createMediaElementSource(vid);
+
+       // osc = ac.createOscillator();
+       dest = ac.createMediaStreamDestination();
+       mediaRecorder = new MediaRecorder(dest.stream);
+       v1_src.connect(dest);
+
+       mediaRecorder.ondataavailable = function(evt) {
+         // push each chunk (blobs) in an array
+         chunks.push(evt.data);
+       };
+
+       mediaRecorder.onstop = function(evt) {
+         // Make blob out of our blobs, and open it.
+         let blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
+         let audioTag = document.createElement('audio');
+         document.querySelector("audio").src = URL.createObjectURL(blob);
+       };
+     }
+
+     b.addEventListener("click", function(e) {
+       if(!ac) {
+           init();
+       }
+
+       if (!clicked) {
+           mediaRecorder.start();
+           vid.play();
+           // osc.start(0);
+           e.target.innerHTML = "Stop recording";
+           clicked = true;
+         } else {
+           mediaRecorder.requestData();
+           mediaRecorder.stop();
+           // osc.stop(0);
+           e.target.disabled = true;
+         }
+     });
+    </script>
+  </body>
+</html>
